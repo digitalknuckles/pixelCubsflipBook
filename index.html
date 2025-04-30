@@ -126,57 +126,59 @@
           this.nextPageIndex = targetIndex;
         }
 
-        this.currentPage.scaleX = 1 - Math.abs(progress);
-        this.nextPage.scaleX = Math.abs(progress);
+          this.currentPage.alpha = 1 - Math.abs(progress);
+          this.nextPage.alpha = Math.abs(progress);
       });
 
       this.input.on('pointerup', (pointer) => {
-        if (!this.isDragging) return;
-        this.isDragging = false;
+  if (!this.isDragging) return;
+  this.isDragging = false;
 
-        const dragDistance = pointer.x - this.dragStartX;
-        const threshold = this.scale.width * 0.25;
+  const dragDistance = pointer.x - this.dragStartX;
+  const threshold = this.scale.width * 0.25;
 
-        if (Math.abs(dragDistance) > threshold && this.nextPage) {
-          this.tweens.add({
-            targets: this.currentPage,
-            scaleX: 0,
-            duration: 200,
-            ease: 'Quad.easeIn'
-          });
-          this.tweens.add({
-            targets: this.nextPage,
-            scaleX: 1,
-            duration: 200,
-            ease: 'Quad.easeOut',
-            onComplete: () => {
-              this.currentPage.destroy();
-              this.currentPage = this.nextPage;
-              this.currentPageIndex = this.nextPageIndex; // moved before null
-              this.nextPage = null;
-            }
-          });
-        } else {
-          this.tweens.add({
-            targets: this.currentPage,
-            scaleX: 1,
-            duration: 200,
-            ease: 'Quad.easeOut'
-          });
-          if (this.nextPage) {
-            this.tweens.add({
-              targets: this.nextPage,
-              scaleX: 0,
-              duration: 200,
-              ease: 'Quad.easeOut',
-              onComplete: () => {
-                this.nextPage.destroy();
-                this.nextPage = null;
-              }
-            });
-          }
+  if (Math.abs(dragDistance) > threshold && this.nextPage) {
+    this.tweens.add({
+      targets: this.currentPage,
+      alpha: 0,
+      duration: 200,
+      ease: 'Quad.easeIn'
+    });
+
+    this.tweens.add({
+      targets: this.nextPage,
+      alpha: 1,
+      duration: 200,
+      ease: 'Quad.easeOut',
+      onComplete: () => {
+        this.currentPage.destroy();
+        this.currentPage = this.nextPage;
+        this.currentPageIndex = this.nextPageIndex;
+        this.nextPage = null;
+      }
+    });
+  } else {
+    this.tweens.add({
+      targets: this.currentPage,
+      alpha: 1,
+      duration: 200,
+      ease: 'Quad.easeOut'
+    });
+
+    if (this.nextPage) {
+      this.tweens.add({
+        targets: this.nextPage,
+        alpha: 0,
+        duration: 200,
+        ease: 'Quad.easeOut',
+        onComplete: () => {
+          this.nextPage.destroy();
+          this.nextPage = null;
         }
       });
+    }
+  }
+});
     }
   }
 
