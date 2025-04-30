@@ -78,18 +78,24 @@
     }
 
     // Move the createScaledImage function here so it can be used everywhere in the class
-    createScaledImage(key) {
-      let img = this.add.image(0, 0, key).setOrigin(0);
-      let scaleX = this.scale.width / img.width;
-      let scaleY = this.scale.height / img.height;
-      let scale = Math.min(scaleX, scaleY); // preserve aspect ratio
-      img.setScale(scale);
-      img.setPosition(
-        (this.scale.width - img.displayWidth) / 2,
-        (this.scale.height - img.displayHeight) / 2
-      );
-      return img;
-    }
+createScaledImage(key) {
+  let img = this.add.image(0, 0, key).setOrigin(0.5);
+  
+  // Wait until image dimensions are ready
+  if (!img.width || !img.height) {
+    img.once('texturekeychange', () => this.createScaledImage(key));
+    return;
+  }
+
+  let scaleX = this.scale.width / img.width;
+  let scaleY = this.scale.height / img.height;
+  let scale = Math.min(scaleX, scaleY); // Fit within screen
+
+  img.setScale(scale);
+  img.setPosition(this.scale.width / 2, this.scale.height / 2);
+
+  return img;
+}
 
     showPage(index) {
       this.currentPage = this.createScaledImage(`page${index}`);
