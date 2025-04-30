@@ -28,6 +28,12 @@
   class FlipBookScene extends Phaser.Scene {
     constructor() {
       super({ key: 'FlipBookScene' });
+      this.currentPageIndex = 0;
+      this.currentPage = null;
+      this.nextPage = null;
+      this.nextPageIndex = null;
+      this.isDragging = false;
+      this.dragStartX = 0;
     }
 
     preload() {
@@ -47,13 +53,8 @@
     }
 
     create() {
-      let currentPageIndex = 0;
-      let currentPage, nextPage, nextPageIndex;
-      let dragStartX = 0;
-      let isDragging = false;
-
       // Helper function to create and scale the image
-      function createScaledImage(scene, key) {
+      const createScaledImage = (scene, key) => {
         let img = scene.add.image(0, 0, key).setOrigin(0);
         let scaleX = scene.scale.width / img.width;
         let scaleY = scene.scale.height / img.height;
@@ -64,10 +65,10 @@
           (scene.scale.height - img.displayHeight) / 2
         );
         return img;
-      }
+      };
 
       // Load the start screen
-      currentPage = createScaledImage(this, 'start');
+      this.currentPage = createScaledImage(this, 'start');
 
       const blinkingText = this.add.text(this.scale.width / 2, this.scale.height - 80, 'Tap to Start', {
         fontSize: '32px',
@@ -84,94 +85,94 @@
 
       this.input.once('pointerdown', () => {
         blinkingText.destroy();
-        currentPage.destroy();
-        showPage.call(this, currentPageIndex);
-        setupTouchDrag.call(this);
+        this.currentPage.destroy();
+        this.showPage(this.currentPageIndex);
+        this.setupTouchDrag();
       });
     }
 
     showPage(index) {
-      currentPage = createScaledImage(this, `page${index}`);
-      currentPageIndex = index;
+      this.currentPage = this.createScaledImage(this, `page${index}`);
+      this.currentPageIndex = index;
     }
 
     setupTouchDrag() {
       this.input.on('pointerdown', (pointer) => {
-        dragStartX = pointer.x;
-        isDragging = true;
+        this.dragStartX = pointer.x;
+        this.isDragging = true;
       });
 
       this.input.on('pointermove', (pointer) => {
-        if (!isDragging) return;
+        if (!this.isDragging) return;
 
-        const dragX = pointer.x - dragStartX;
+        const dragX = pointer.x - this.dragStartX;
         const progress = Phaser.Math.Clamp(dragX / (this.scale.width / 2), -1, 1);
 
         let targetIndex = null;
 
-        if (progress < 0 && currentPageIndex < pageImages.length - 1) {
-          targetIndex = currentPageIndex + 1;
-        } else if (progress > 0 && currentPageIndex > 0) {
-          targetIndex = currentPageIndex - 1;
+        if (progress < 0 && this.currentPageIndex < pageImages.length - 1) {
+          targetIndex = this.currentPageIndex + 1;
+        } else if (progress > 0 && this.currentPageIndex > 0) {
+          targetIndex = this.currentPageIndex - 1;
         } else {
           return;
         }
 
-        if (!nextPage || nextPageIndex !== targetIndex) {
-          if (nextPage) nextPage.destroy();
-          nextPage = createScaledImage(this, `page${targetIndex}`);
-          nextPage.scaleX = 0;  // <-- Correct assignment
-          nextPageIndex = targetIndex;
+        if (!this.nextPage || this.nextPageIndex !== targetIndex) {
+          if (this.nextPage) this.nextPage.destroy();
+          this.nextPage = this.createScaledImage(this, `page${targetIndex}`);
+          this.nextPage.scaleX = 0;  // <-- Correct assignment
+          this.nextPageIndex = targetIndex;
         }
 
-        currentPage.scaleX = 1 - Math.abs(progress);
-        nextPage.scaleX = Math.abs(progress);
+        this.currentPage.scaleX = 1 - Math.abs(progress);
+        this.nextPage.scaleX = Math.abs(progress);
       });
 
       this.input.on('pointerup', (pointer) => {
-        if (!isDragging) return;
-        isDragging = false;
+        if (!this.isDragging) return;
+        this.isDragging = false;
 
-        const dragDistance = pointer.x - dragStartX;
+        const dragDistance = pointer.x - this.dragStartX;
         const threshold = this.scale.width * 0.25;
 
-        if (Math.abs(dragDistance) > threshold && nextPage) {
+        if (Math.abs(dragDistance) > threshold && this.nextPage) {
           // Complete page flip
           this.tweens.add({
-            targets: currentPage,
+            targets: this.currentPage,
             scaleX: 0,
             duration: 200,
             ease: 'Quad.easeIn'
           });
           this.tweens.add({
-            targets: nextPage,
+            targets: this.nextPage,
             scaleX: 1,
             duration: 200,
             ease: 'Quad.easeOut',
             onComplete: () => {
-              currentPage.destroy();
-              currentPage = nextPage;
-              nextPage = null;
-              currentPageIndex = nextPageIndex;
+              this.currentPage.destroy();
+              this.currentPage = this.nextPage;
+              this.nextPage = null;
+              this.currentPageIndex = this.nextPageIndex;
             }
           });
         } else {
           // Revert back
           this.tweens.add({
-            targets: currentPage,
+            targets: this.currentPage,
             scaleX: 1,
             duration: 200,
             ease: 'Quad.easeOut'
           });
-          if (nextPage) {
+          if (this.nextPage) {
             this.tweens.add({
-              targets: nextPage,
+              targets: this.nextPage,
               scaleX: 0,
               duration: 200,
               ease: 'Quad.easeOut',
               onComplete: () => {
-                nextPage.destroy();
-                nextPage = null;
+                this.nextPage.destroy();
+                this.nextPage = null;
               }
             });
           }
