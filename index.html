@@ -79,14 +79,15 @@
     createScaledImage(key) {
       const img = this.add.image(this.scale.width / 2, this.scale.height / 2, key).setOrigin(0.5);
 
+      img.once('texturekeychange', () => {
+        console.log('Image texture changed:', key);
+      });
+
       const scaleX = this.scale.width / img.width;
       const scaleY = this.scale.height / img.height;
-      const scale = Math.min(scaleX, scaleY);
+      const scale = Math.min(scaleX, scaleY); // Maintain aspect ratio
 
       img.setScale(scale);
-      img.setOrigin(0.5);  // ensure correct anchor for scaling
-      img.setPosition(this.scale.width / 2, this.scale.height / 2);  // re-center after scaling
-
       return img;
     }
 
@@ -121,64 +122,63 @@
         if (!this.nextPage || this.nextPageIndex !== targetIndex) {
           if (this.nextPage) this.nextPage.destroy();
           this.nextPage = this.createScaledImage(`page${targetIndex}`);
-          this.nextPage.setOrigin(0.5);
-          this.nextPage.scaleX = 0;
+          this.nextPage.setAlpha(0);
           this.nextPageIndex = targetIndex;
         }
 
-          this.currentPage.alpha = 1 - Math.abs(progress);
-          this.nextPage.alpha = Math.abs(progress);
+        this.currentPage.alpha = 1 - Math.abs(progress);
+        this.nextPage.alpha = Math.abs(progress);
       });
 
       this.input.on('pointerup', (pointer) => {
-  if (!this.isDragging) return;
-  this.isDragging = false;
+        if (!this.isDragging) return;
+        this.isDragging = false;
 
-  const dragDistance = pointer.x - this.dragStartX;
-  const threshold = this.scale.width * 0.25;
+        const dragDistance = pointer.x - this.dragStartX;
+        const threshold = this.scale.width * 0.25;
 
-  if (Math.abs(dragDistance) > threshold && this.nextPage) {
-    this.tweens.add({
-      targets: this.currentPage,
-      alpha: 0,
-      duration: 200,
-      ease: 'Quad.easeIn'
-    });
+        if (Math.abs(dragDistance) > threshold && this.nextPage) {
+          this.tweens.add({
+            targets: this.currentPage,
+            alpha: 0,
+            duration: 200,
+            ease: 'Quad.easeIn'
+          });
 
-    this.tweens.add({
-      targets: this.nextPage,
-      alpha: 1,
-      duration: 200,
-      ease: 'Quad.easeOut',
-      onComplete: () => {
-        this.currentPage.destroy();
-        this.currentPage = this.nextPage;
-        this.currentPageIndex = this.nextPageIndex;
-        this.nextPage = null;
-      }
-    });
-  } else {
-    this.tweens.add({
-      targets: this.currentPage,
-      alpha: 1,
-      duration: 200,
-      ease: 'Quad.easeOut'
-    });
+          this.tweens.add({
+            targets: this.nextPage,
+            alpha: 1,
+            duration: 200,
+            ease: 'Quad.easeOut',
+            onComplete: () => {
+              this.currentPage.destroy();
+              this.currentPage = this.nextPage;
+              this.currentPageIndex = this.nextPageIndex;
+              this.nextPage = null;
+            }
+          });
+        } else {
+          this.tweens.add({
+            targets: this.currentPage,
+            alpha: 1,
+            duration: 200,
+            ease: 'Quad.easeOut'
+          });
 
-    if (this.nextPage) {
-      this.tweens.add({
-        targets: this.nextPage,
-        alpha: 0,
-        duration: 200,
-        ease: 'Quad.easeOut',
-        onComplete: () => {
-          this.nextPage.destroy();
-          this.nextPage = null;
+          if (this.nextPage) {
+            this.tweens.add({
+              targets: this.nextPage,
+              alpha: 0,
+              duration: 200,
+              ease: 'Quad.easeOut',
+              onComplete: () => {
+                this.nextPage.destroy();
+                this.nextPage = null;
+              }
+            });
+          }
         }
       });
-    }
-  }
-});
     }
   }
 
