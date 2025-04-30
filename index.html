@@ -21,7 +21,7 @@
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.85.2/dist/phaser.js"></script>
 <script>
   const pageImages = [
-    'image1.png', 'image2.png', 'image3.png',
+    'image1.png', 'image2.png', 'image3.png', 'image4.png', 'image5.png', 'image6.png', 'image7.png', 'image8.png', 'image9.png', 'image10.png', 'image11.png', 'image12.png', 'image13.png', 'image14.png', 'image4.png'
     // Add up to 'image15.png'
   ];
 
@@ -29,6 +29,22 @@
   let currentPage, nextPage, nextPageIndex;
   let dragStartX = 0;
   let isDragging = false;
+  // Load the first page with correct scaling
+let pageKey = `page${currentPageIndex}`;
+currentPage = this.add.image(0, 0, pageKey).setOrigin(0);
+
+// Scale to fit screen while preserving aspect ratio
+let scaleX = this.scale.width / currentPage.width;
+let scaleY = this.scale.height / currentPage.height;
+let scale = Math.min(scaleX, scaleY);
+
+currentPage.setScale(scale);
+
+// Optionally center the image
+currentPage.setPosition(
+  (this.scale.width - currentPage.displayWidth) / 2,
+  (this.scale.height - currentPage.displayHeight) / 2
+);
 
   const config = {
     type: Phaser.AUTO,
@@ -118,8 +134,8 @@
         nextPageIndex = targetIndex;
       }
 
-      currentPage.setScaleX(1 - Math.abs(progress));
-      nextPage.setScaleX(Math.abs(progress));
+      currentPage.scaleX = 1 - Math.abs(progress);
+      nextPage.scaleX = Math.abs(progress);
     });
 
     this.input.on('pointerup', (pointer) => {
