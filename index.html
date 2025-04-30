@@ -14,9 +14,36 @@
     canvas {
       display: block;
     }
+    /* Style for buttons */
+    .button {
+      position: absolute;
+      padding: 10px 20px;
+      font-size: 18px;
+      color: #fff;
+      background-color: #007bff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .button:hover {
+      background-color: #0056b3;
+    }
+    .button-container {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 10;
+    }
   </style>
 </head>
 <body>
+
+<!-- Buttons for Wallet Connect and View Collection -->
+<div class="button-container">
+  <button id="walletConnectButton" class="button">Mint Gift</button>
+  <button id="viewCollectionButton" class="button" style="margin-top: 10px;">View Collection</button>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.85.2/dist/phaser.js"></script>
 <script>
@@ -74,20 +101,32 @@
         this.showPage(this.currentPageIndex);
         this.setupTouchDrag();
       });
+
+      // Wallet Connect button functionality (placeholder)
+      const walletConnectButton = document.getElementById('walletConnectButton');
+      walletConnectButton.addEventListener('click', () => {
+        console.log('Wallet Connect button clicked');
+        // Placeholder for wallet connection logic (integration with walletconnect.js)
+      });
+
+      // View Collection button functionality
+      const viewCollectionButton = document.getElementById('viewCollectionButton');
+      viewCollectionButton.addEventListener('click', () => {
+        window.open('https://opensea.io/collection/pixel-cubs-10k', '_blank');
+      });
     }
 
     createScaledImage(key) {
       const img = this.add.image(this.scale.width / 2, this.scale.height / 2, key).setOrigin(0.5);
 
-      img.once('texturekeychange', () => {
-        console.log('Image texture changed:', key);
-      });
-
       const scaleX = this.scale.width / img.width;
       const scaleY = this.scale.height / img.height;
-      const scale = Math.min(scaleX, scaleY); // Maintain aspect ratio
+      const scale = Math.min(scaleX, scaleY);
 
       img.setScale(scale);
+      img.setOrigin(0.5);  // ensure correct anchor for scaling
+      img.setPosition(this.scale.width / 2, this.scale.height / 2);  // re-center after scaling
+
       return img;
     }
 
@@ -122,7 +161,8 @@
         if (!this.nextPage || this.nextPageIndex !== targetIndex) {
           if (this.nextPage) this.nextPage.destroy();
           this.nextPage = this.createScaledImage(`page${targetIndex}`);
-          this.nextPage.setAlpha(0);
+          this.nextPage.setOrigin(0.5);
+          this.nextPage.scaleX = 0;
           this.nextPageIndex = targetIndex;
         }
 
