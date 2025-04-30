@@ -21,8 +21,9 @@
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.85.2/dist/phaser.js"></script>
 <script>
   const pageImages = [
-    'image1.png', 'image2.png', 'image3.png', 'image4.png', 'image5.png', 'image6.png', 'image7.png', 'image8.png', 'image9.png', 'image10.png', 'image11.png', 'image12.png', 'image13.png', 'image14.png', 'image15.png',
-    // Add up to 'image15.png'
+    'image1.png', 'image2.png', 'image3.png', 'image4.png', 'image5.png',
+    'image6.png', 'image7.png', 'image8.png', 'image9.png', 'image10.png',
+    'image11.png', 'image12.png', 'image13.png', 'image14.png', 'image15.png',
   ];
 
   class FlipBookScene extends Phaser.Scene {
@@ -42,7 +43,6 @@
         this.load.image(`page${i}`, `assets/${img}`);
       });
 
-      // Check loading progress
       this.load.on('fileprogress', (file) => {
         console.log('Loading file: ' + file.key);
       });
@@ -53,7 +53,6 @@
     }
 
     create() {
-      // Load the start screen
       this.currentPage = this.createScaledImage('start');
 
       const blinkingText = this.add.text(this.scale.width / 2, this.scale.height - 80, 'Tap to Start', {
@@ -77,25 +76,25 @@
       });
     }
 
-    // Move the createScaledImage function here so it can be used everywhere in the class
-createScaledImage(key) {
-  const img = this.add.image(this.scale.width / 2, this.scale.height / 2, key).setOrigin(0.5);
+    createScaledImage(key) {
+      const img = this.add.image(this.scale.width / 2, this.scale.height / 2, key).setOrigin(0.5);
 
-  // Calculate scale to preserve aspect ratio
-  const scaleX = this.scale.width / img.width;
-  const scaleY = this.scale.height / img.height;
-  const scale = Math.min(scaleX, scaleY);
+      const scaleX = this.scale.width / img.width;
+      const scaleY = this.scale.height / img.height;
+      const scale = Math.min(scaleX, scaleY);
 
-  img.setScale(scale);
+      img.setScale(scale);
+      img.setOrigin(0.5);  // ensure correct anchor for scaling
+      img.setPosition(this.scale.width / 2, this.scale.height / 2);  // re-center after scaling
 
-  return img;
-}
+      return img;
+    }
 
-showPage(index) {
-  if (this.currentPage) this.currentPage.destroy();
-  this.currentPage = this.createScaledImage(`page${index}`);
-  this.currentPageIndex = index;
-}
+    showPage(index) {
+      if (this.currentPage) this.currentPage.destroy();
+      this.currentPage = this.createScaledImage(`page${index}`);
+      this.currentPageIndex = index;
+    }
 
     setupTouchDrag() {
       this.input.on('pointerdown', (pointer) => {
@@ -118,11 +117,12 @@ showPage(index) {
         } else {
           return;
         }
-        
+
         if (!this.nextPage || this.nextPageIndex !== targetIndex) {
           if (this.nextPage) this.nextPage.destroy();
           this.nextPage = this.createScaledImage(`page${targetIndex}`);
-          this.nextPage.scaleX = 0;  // Prepare for animation
+          this.nextPage.setOrigin(0.5);
+          this.nextPage.scaleX = 0;
           this.nextPageIndex = targetIndex;
         }
 
@@ -138,7 +138,6 @@ showPage(index) {
         const threshold = this.scale.width * 0.25;
 
         if (Math.abs(dragDistance) > threshold && this.nextPage) {
-          // Complete page flip
           this.tweens.add({
             targets: this.currentPage,
             scaleX: 0,
@@ -153,12 +152,11 @@ showPage(index) {
             onComplete: () => {
               this.currentPage.destroy();
               this.currentPage = this.nextPage;
+              this.currentPageIndex = this.nextPageIndex; // moved before null
               this.nextPage = null;
-              this.currentPageIndex = this.nextPageIndex;
             }
           });
         } else {
-          // Revert back
           this.tweens.add({
             targets: this.currentPage,
             scaleX: 1,
@@ -195,7 +193,6 @@ showPage(index) {
   };
 
   const game = new Phaser.Game(config);
-
 </script>
 
 </body>
