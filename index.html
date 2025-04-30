@@ -113,8 +113,8 @@
         if (nextPage) nextPage.destroy();
         nextPage = this.add.image(0, 0, `page${targetIndex}`)
           .setOrigin(0)
-          .setDisplaySize(this.scale.width, this.scale.height)
-          .setScaleX(0);
+          .setDisplaySize(this.scale.width, this.scale.height);
+        nextPage.scaleX = 0;  // <-- Correct assignment
         nextPageIndex = targetIndex;
       }
 
