@@ -53,22 +53,8 @@
     }
 
     create() {
-      // Helper function to create and scale the image
-      const createScaledImage = (scene, key) => {
-        let img = scene.add.image(0, 0, key).setOrigin(0);
-        let scaleX = scene.scale.width / img.width;
-        let scaleY = scene.scale.height / img.height;
-        let scale = Math.min(scaleX, scaleY); // preserve aspect ratio
-        img.setScale(scale);
-        img.setPosition(
-          (scene.scale.width - img.displayWidth) / 2,
-          (scene.scale.height - img.displayHeight) / 2
-        );
-        return img;
-      };
-
       // Load the start screen
-      this.currentPage = createScaledImage(this, 'start');
+      this.currentPage = this.createScaledImage('start');
 
       const blinkingText = this.add.text(this.scale.width / 2, this.scale.height - 80, 'Tap to Start', {
         fontSize: '32px',
@@ -91,8 +77,22 @@
       });
     }
 
+    // Move the createScaledImage function here so it can be used everywhere in the class
+    createScaledImage(key) {
+      let img = this.add.image(0, 0, key).setOrigin(0);
+      let scaleX = this.scale.width / img.width;
+      let scaleY = this.scale.height / img.height;
+      let scale = Math.min(scaleX, scaleY); // preserve aspect ratio
+      img.setScale(scale);
+      img.setPosition(
+        (this.scale.width - img.displayWidth) / 2,
+        (this.scale.height - img.displayHeight) / 2
+      );
+      return img;
+    }
+
     showPage(index) {
-      this.currentPage = this.createScaledImage(this, `page${index}`);
+      this.currentPage = this.createScaledImage(`page${index}`);
       this.currentPageIndex = index;
     }
 
@@ -120,7 +120,7 @@
 
         if (!this.nextPage || this.nextPageIndex !== targetIndex) {
           if (this.nextPage) this.nextPage.destroy();
-          this.nextPage = this.createScaledImage(this, `page${targetIndex}`);
+          this.nextPage = this.createScaledImage(`page${targetIndex}`);
           this.nextPage.scaleX = 0;  // <-- Correct assignment
           this.nextPageIndex = targetIndex;
         }
