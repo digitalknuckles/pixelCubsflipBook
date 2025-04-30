@@ -79,28 +79,23 @@
 
     // Move the createScaledImage function here so it can be used everywhere in the class
 createScaledImage(key) {
-  let img = this.add.image(0, 0, key).setOrigin(0.5);
-  
-  // Wait until image dimensions are ready
-  if (!img.width || !img.height) {
-    img.once('texturekeychange', () => this.createScaledImage(key));
-    return;
-  }
+  const img = this.add.image(this.scale.width / 2, this.scale.height / 2, key).setOrigin(0.5);
 
-  let scaleX = this.scale.width / img.width;
-  let scaleY = this.scale.height / img.height;
-  let scale = Math.min(scaleX, scaleY); // Fit within screen
+  // Calculate scale to preserve aspect ratio
+  const scaleX = this.scale.width / img.width;
+  const scaleY = this.scale.height / img.height;
+  const scale = Math.min(scaleX, scaleY);
 
   img.setScale(scale);
-  img.setPosition(this.scale.width / 2, this.scale.height / 2);
 
   return img;
 }
 
-    showPage(index) {
-      this.currentPage = this.createScaledImage(`page${index}`);
-      this.currentPageIndex = index;
-    }
+showPage(index) {
+  if (this.currentPage) this.currentPage.destroy();
+  this.currentPage = this.createScaledImage(`page${index}`);
+  this.currentPageIndex = index;
+}
 
     setupTouchDrag() {
       this.input.on('pointerdown', (pointer) => {
@@ -123,11 +118,11 @@ createScaledImage(key) {
         } else {
           return;
         }
-
+        
         if (!this.nextPage || this.nextPageIndex !== targetIndex) {
           if (this.nextPage) this.nextPage.destroy();
           this.nextPage = this.createScaledImage(`page${targetIndex}`);
-          this.nextPage.scaleX = 0;  // <-- Correct assignment
+          this.nextPage.scaleX = 0;  // Prepare for animation
           this.nextPageIndex = targetIndex;
         }
 
